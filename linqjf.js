@@ -1,151 +1,185 @@
-var ObjectArray = [
-{Nombre: "Benjamin", Apellido: "Fuentes", Edad: 2},
-{Nombre: "Vicente", Apellido: "Fuentes", Edad: 49},
-{Nombre: "Josep", Apellido: "Fuentes", Edad: 18}, 
-{Nombre: "Isac", Apellido: "Fuentes", Edad: 18},
-{Nombre: "Josep", Apellido: "Sierra", Edad: 20}
-];
-Array.prototype.groupBy = function(expression){
-  if(typeof expression !== "function")
-    throw Error("La expression debe ser función flecha", 10);
-  var newObject = {};
-  this.forEach(element => {
-    if(Object.keys(newObject).indexOf(expression(element).toString()) > -1){
-      newObject[expression(element)].push(element);
+const isEquals = function (a, b) {
+  if (typeof a === "object" && typeof b === "object") {
+    var aObject = Object.getOwnPropertyNames(a);
+    var bObject = Object.getOwnPropertyNames(b);
+    if (aObject.length !== bObject.length)
+      return false;
+    for (var i = 0; i < aObject.length; i++) {
+      var propName = aObject[i];
+      if (a[propName] !== b[propName])
+        return false;
     }
-    else newObject[expression(element)] = [element];
+    return true;
+  }
+  return false;
+};
+Array.prototype.groupBy = function (expression) {
+  if (typeof expression !== "function")
+    throw Error("La expression debe ser función flecha", 10);
+  var newObject = [];
+  this.forEach(element => {
+    var objGroup = { Key: expression(element), Value: [element] };
+    if (typeof objGroup.Key === "object") {
+      if (newObject.any(x => isEquals(x.Key, objGroup.Key))) {
+        newObject.firstOrDefault(x => isEquals(x.Key, objGroup.Key)).Value.push(element);
+      }
+      else newObject.push(objGroup);
+    }
+    else {
+      if (newObject.any(x => x.Key === objGroup.Key)) {
+        newObject.firstOrDefault(x => x.Key === objGroup.Key).Value.push(element);
+      }
+      else newObject.push(objGroup);
+    }
+
   });
   return newObject;
 }
-Array.prototype.any = function(expression){
+Array.prototype.any = function (expression) {
   var any = false;
-  if(typeof expression !== "function")
+  if (typeof expression !== "function")
     throw Error("La expression debe ser función flecha", 10);
 
   this.forEach(element => {
-    any = !any ? expression(element): any;
+    any = !any ? expression(element) : any;
   });
   return any;
 }
-Array.prototype.where = function(expression){
+Array.prototype.where = function (expression) {
   var newArray = [];
-  if(typeof expression !== "function")
+  if (typeof expression !== "function")
     throw Error("La expression debe ser función flecha", 10);
 
   this.forEach(element => {
-    if(expression(element)) newArray.push(element);
+    if (expression(element)) newArray.push(element);
   });
   return newArray;
 }
-Array.prototype.first = function(){
-  var arrayObject = this ?? [];
-  if(arrayObject.length === 0)
+Array.prototype.first = function () {
+  var arrayObject = this || [];
+  if (arrayObject.length === 0)
     throw Error("No se encontro registros en la lista", 20);
   return arrayObject[0];
 }
-Array.prototype.firstOrDefault = function(expression){
-  var arrayObject = this ?? [];
-  if(expression != null) arrayObject = arrayObject.where(expression);
-  if(arrayObject.length === 0)
+Array.prototype.firstOrDefault = function (expression) {
+  var arrayObject = this || [];
+  if (expression != null) arrayObject = arrayObject.where(expression);
+  if (arrayObject.length === 0)
     return null;
   return arrayObject[0];
 }
-Array.prototype.last = function(){
-  var arrayObject = this ?? [];
-  if(arrayObject.length === 0)
+Array.prototype.last = function () {
+  var arrayObject = this || [];
+  if (arrayObject.length === 0)
     throw Error("No se encontro registros en la lista", 20);
   return arrayObject[arrayObject.length - 1];
 }
-Array.prototype.lastOrDefault = function(expression){
-  var arrayObject = this ?? [];
-  if(expression != null) arrayObject = arrayObject.where(expression);
-  if(arrayObject.length === 0)
+Array.prototype.lastOrDefault = function (expression) {
+  var arrayObject = this || [];
+  if (expression != null) arrayObject = arrayObject.where(expression);
+  if (arrayObject.length === 0)
     return null;
   return arrayObject[arrayObject.length - 1];;
 }
-Array.prototype.sortBy = function(expression){
+Array.prototype.sortBy = function (expression) {
   var arraySort = Object.assign([], this);
-  const quickSort = function(array, expression){
-    if(array.length >= 2){
+  const quickSort = function (array, expression) {
+    if (array.length >= 2) {
       var left = [];
       var right = [];
       var index = parseInt(array.length / 2);
       var pivot = array[index];
-      for(var i=0;i<array.length;i++){
-        if(i!==index){
-          if(expression(array[i]) < expression(pivot)) left.push(array[i]);
+      for (var i = 0; i < array.length; i++) {
+        if (i !== index) {
+          if (expression(array[i]) < expression(pivot)) left.push(array[i]);
           else right.push(array[i]);
         }
       }
-      if(left.length < right.length) left.push(pivot);
+      if (left.length < right.length) left.push(pivot);
       else right.push(pivot);
-      return quickSort(left,expression).concat(quickSort(right,expression));
+      return quickSort(left, expression).concat(quickSort(right, expression));
     }
     else return array;
   };
   return quickSort(arraySort, expression);
 }
-Array.prototype.sortByDescending = function(expression){
+Array.prototype.sortByDescending = function (expression) {
   var arraySort = Object.assign([], this);
-  const quickSort = function(array, expression){
-    if(array.length >= 2){
+  const quickSort = function (array, expression) {
+    if (array.length >= 2) {
       var left = [];
       var right = [];
       var index = parseInt(array.length / 2);
       var pivot = array[index];
-      for(var i=0;i<array.length;i++){
-        if(i!==index){
-          if(expression(array[i]) < expression(pivot)) left.push(array[i]);
+      for (var i = 0; i < array.length; i++) {
+        if (i !== index) {
+          if (expression(array[i]) < expression(pivot)) left.push(array[i]);
           else right.push(array[i]);
         }
       }
-      if(left.length < right.length) left.push(pivot);
+      if (left.length < right.length) left.push(pivot);
       else right.push(pivot);
-      return quickSort(right,expression).concat(quickSort(left,expression));
+      return quickSort(right, expression).concat(quickSort(left, expression));
     }
     else return array;
   };
   return quickSort(arraySort, expression);
 }
-Array.prototype.max = function(expression){
-  if(typeof expression !== "function")
+Array.prototype.max = function (expression) {
+  if (typeof expression !== "function")
     throw Error("La expression debe ser función flecha", 10);
   this.forEach(element => {
-    if(typeof expression(element) !== "number")
+    if (typeof expression(element) !== "number")
       throw Error("La expression debe ser función flecha", 10);
   });
   return this.sortBy(expression).last();
 }
-Array.prototype.min = function(expression){
-  if(typeof expression !== "function")
+Array.prototype.min = function (expression) {
+  if (typeof expression !== "function")
     throw Error("La expression debe ser función flecha", 10);
   this.forEach(element => {
-    if(typeof expression(element) !== "number")
+    if (typeof expression(element) !== "number")
       throw Error("La expression debe ser función flecha", 10);
   });
   return this.sortByDescending(expression).last();
 }
-Array.prototype.select = function(expression){
-  if(typeof expression !== "function")
+Array.prototype.select = function (expression) {
+  if (typeof expression !== "function")
     throw Error("La expression debe ser función flecha", 10);
   var newArray = [];
   this.forEach(element => newArray.push(expression(element)));
   return newArray;
 }
-console.log("Array", ObjectArray);
-console.log("GroupBy", ObjectArray.groupBy(p=> p.Nombre));
-console.log("Any",ObjectArray.any(p=> p.Nombre === "Josep"));
-console.log("Where", ObjectArray.where(p=> p.Edad > 18));
-console.log("Where With Any",ObjectArray.where(p=> p.Nombre === "Josep").any(p=>p.Nombre === "Josep"));
-console.log("Where With GroupBy",ObjectArray.where(p=> p.Nombre === "Josep").groupBy(p=>p.Apellido));
-console.log("First",ObjectArray.first());
-console.log("FirstOrDefault",ObjectArray.firstOrDefault());
-console.log("FirstOrDefault With Expression",ObjectArray.firstOrDefault(x=>x.Nombre == "Isac"));
-console.log("Last",ObjectArray.last());
-console.log("LastOrDefault",ObjectArray.lastOrDefault());
-console.log("LastOrDefault With Expression",ObjectArray.last(x=>x.Nombre == "Isac"));
-console.log("SortBy Edad",ObjectArray.sortBy(x=>x.Edad));
-console.log("SortByDescending Edad",ObjectArray.sortByDescending(x=>x.Edad));
-console.log("Max By Edad",ObjectArray.max(x=>x.Edad));
-console.log("Min By Edad",ObjectArray.min(x=>x.Edad));
-console.log("Select",ObjectArray.select(x=>{return {Obj: x.Edad}}));
+Array.prototype.all = function (expression) {
+  if (typeof expression !== "function")
+    throw Error("La expression debe ser función flecha", 10);
+  var result = true;
+  this.forEach(element => result = result ? expression(element) : false);
+  return result;
+}
+Array.prototype.sum = function (expression) {
+  if (typeof expression !== "function")
+    throw Error("La expression debe ser función flecha", 10);
+  var sum = 0;
+  this.forEach(element => {
+    if (typeof expression(element) === "number")
+      sum += parseFloat(expression(element));
+    else throw Error("Solo se aceptan expresiones Number", 10);
+  });
+  return sum;
+}
+Array.prototype.count = function (expression) {
+  if (expression !== undefined)
+    if (typeof expression !== "function")
+      throw Error("La expression debe ser función flecha", 10);
+
+  if (expression !== undefined)
+    return this.where(expression).length;
+  else return this.length;
+}
+Array.prototype.average = function (expression) {
+  if (typeof expression !== "function")
+    throw Error("La expression debe ser función flecha", 10);
+
+  return (this.sum(expression) / this.count());
+}
